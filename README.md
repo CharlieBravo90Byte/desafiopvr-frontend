@@ -68,3 +68,188 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+
+
+```markdown
+# Frontend - Gestión de Empresas y Trabajadores
+
+Frontend desarrollado en React para el sistema de gestión de empresas y trabajadores.
+
+## Requisitos Previos
+
+- Node.js 16.x o superior
+- npm 8.x o superior
+- Backend del proyecto en ejecución (puerto 8080)
+
+## Instalación
+
+1. Clona el repositorio (si aún no lo has hecho):
+```bash
+git clone <url-del-repositorio>
+cd frontend
+```
+
+2. Instala las dependencias:
+```bash
+npm install
+```
+
+## Ejecución
+
+### Modo Desarrollo
+```bash
+npm start
+```
+La aplicación estará disponible en `http://localhost:3000`
+
+### Modo Producción
+```bash
+npm run build
+```
+
+## Estructura del Proyecto
+
+```
+frontend/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── common/           # Componentes compartidos
+│   │   ├── empresa/          # Componentes relacionados con empresas
+│   │   └── trabajador/       # Componentes relacionados con trabajadores
+│   ├── services/            # Servicios API
+│   ├── App.js
+│   └── index.js
+├── package.json
+└── README.md
+```
+
+## Principales Características
+
+1. **Gestión de Empresas**
+   - Listado de empresas
+   - Creación de nuevas empresas
+   - Edición de empresas existentes
+   - Eliminación de empresas
+
+2. **Gestión de Trabajadores**
+   - Listado de trabajadores por empresa
+   - Creación de nuevos trabajadores
+   - Edición de trabajadores existentes
+   - Eliminación de trabajadores
+
+## Tecnologías Utilizadas
+
+- React 18
+- Material-UI (MUI)
+- React Router DOM
+- Axios
+- date-fns
+
+## Configuración
+
+La configuración de la API se encuentra en `src/services/api.js`:
+
+```javascript
+const API_BASE_URL = 'http://localhost:8080/api';
+```
+
+## Componentes Principales
+
+### Empresas
+- `EmpresaList`: Lista de empresas con funciones CRUD
+- `EmpresaForm`: Formulario para crear/editar empresas
+
+### Trabajadores
+- `TrabajadorList`: Lista de trabajadores por empresa
+- `TrabajadorForm`: Formulario para crear/editar trabajadores
+
+### Componentes Comunes
+- `Loading`: Componente de carga
+- `Navbar`: Barra de navegación
+- `ErrorBoundary`: Manejo de errores
+
+## Scripts Disponibles
+
+```bash
+# Iniciar en modo desarrollo
+npm start
+
+# Construir para producción
+npm run build
+
+# Ejecutar tests
+npm test
+
+# Ejecutar linter
+npm run lint
+```
+
+## Convenciones de Código
+
+- Usar nombres descriptivos para componentes y funciones
+- Mantener componentes pequeños y reutilizables
+- Seguir principios de Clean Code
+- Documentar funciones y componentes complejos
+
+## Manejo de Estado
+
+- Estados locales con useState para datos de componentes
+- Props para pasar datos entre componentes
+- useEffect para efectos secundarios y llamadas API
+
+## Navegación
+
+La navegación se maneja con React Router con las siguientes rutas principales:
+
+```javascript
+/                                   // Lista de empresas
+/empresas/nuevo                     // Crear empresa
+/empresas/editar/:id               // Editar empresa
+/empresas/:empresaId/trabajadores   // Lista de trabajadores
+/empresas/:empresaId/trabajadores/nuevo     // Crear trabajador
+/empresas/:empresaId/trabajadores/editar/:id // Editar trabajador
+```
+
+## Manejo de Errores
+
+- Validación de formularios
+- Manejo de errores de API
+- Mensajes de error amigables para el usuario
+- Feedback visual para acciones del usuario
+
+## Buenas Prácticas
+
+1. Mantener el código limpio y documentado
+2. Usar componentes funcionales y hooks
+3. Implementar manejo de errores robusto
+4. Seguir principios de diseño responsivo
+5. Optimizar rendimiento cuando sea necesario
+
+## Problemas Conocidos y Soluciones
+
+1. Error CORS con el backend:
+   - Verificar que el backend esté configurado correctamente
+   - Revisar la configuración de CORS en el backend
+
+2. Problemas de caché:
+   - Limpiar caché del navegador
+   - Usar modo incógnito para pruebas
+
+## Contribuir
+
+1. Crear rama para nueva característica
+2. Hacer commit de cambios
+3. Asegurar que los tests pasen
+4. Crear Pull Request
+
+## Autor
+
+CharlieBravo90Byte
+
+## Última Actualización
+
+29 de Diciembre de 2024
+```

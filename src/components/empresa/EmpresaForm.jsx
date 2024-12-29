@@ -1,26 +1,60 @@
-// src/components/empresa/EmpresaForm.jsx
+/**
+ * Componente EmpresaForm - Formulario de creación de empresas
+ * Fecha: 2024-12-29 10:41:42 UTC
+ * Autor: CharlieBravo90Byte
+ * 
+ * Este componente maneja la creación de nuevas empresas,
+ * incluyendo validaciones de RUT y manejo de errores
+ */
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Paper,
-  Alert
+  Box, TextField, Button, Typography,
+  Paper, Alert
 } from '@mui/material';
 import { empresaService } from '../../services/empresaService';
 import { validateRut } from '../../utils/validators';
 
+// Estilos para los contenedores
+const estilosContenedor = {
+  maxWidth: 600,
+  mx: 'auto',
+  mt: 4
+};
+
+const estilosPaper = {
+  p: 3
+};
+
+const estilosBotones = {
+  mt: 3,
+  display: 'flex',
+  gap: 2
+};
+
+// Estado inicial de la empresa
+const estadoInicialEmpresa = {
+  rut: '',
+  razonSocial: ''
+};
+
+/**
+ * Componente para crear una nueva empresa
+ * @returns {JSX.Element} Formulario de creación de empresa
+ */
 const EmpresaForm = () => {
   const navigate = useNavigate();
+  
+  // Estados del componente
   const [error, setError] = useState('');
   const [rutError, setRutError] = useState('');
-  const [empresa, setEmpresa] = useState({
-    rut: '',
-    razonSocial: ''
-  });
+  const [empresa, setEmpresa] = useState(estadoInicialEmpresa);
 
+  /**
+   * Valida el formulario antes de enviar
+   * @returns {boolean} True si el formulario es válido
+   */
   const validateForm = () => {
     if (!validateRut(empresa.rut)) {
       setRutError('RUT inválido');
@@ -30,6 +64,10 @@ const EmpresaForm = () => {
     return true;
   };
 
+  /**
+   * Maneja los cambios en los campos del formulario
+   * @param {Event} e - Evento del campo de texto
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEmpresa(prev => ({
@@ -41,27 +79,24 @@ const EmpresaForm = () => {
     }
   };
 
+  /**
+   * Maneja el envío del formulario
+   * @param {Event} e - Evento del formulario
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     
     try {
-      // Enviar solo los campos necesarios
       const empresaData = {
         rut: empresa.rut.trim(),
         razonSocial: empresa.razonSocial.trim()
       };
-
-      console.log('Datos a enviar:', empresaData);
       
-      // Llamar al servicio para crear la empresa
-      const response = await empresaService.create(empresaData);
-      console.log('Empresa creada:', response);
-      
-      // Redireccionar al listado después de crear exitosamente
+      await empresaService.create(empresaData);
       navigate('/');
     } catch (err) {
-      console.error('Error detallado:', err);
+      console.error('Error al crear empresa:', err);
       const errorMessage = err.response?.data?.message || 
         'Error al crear la empresa. Verifique los datos e intente nuevamente.';
       setError(errorMessage);
@@ -69,8 +104,8 @@ const EmpresaForm = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
-      <Paper sx={{ p: 3 }}>
+    <Box sx={estilosContenedor}>
+      <Paper sx={estilosPaper}>
         <Typography variant="h5" gutterBottom>
           Crear Nueva Empresa
         </Typography>
@@ -81,7 +116,7 @@ const EmpresaForm = () => {
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <TextField
             fullWidth
             label="RUT"
@@ -92,6 +127,10 @@ const EmpresaForm = () => {
             required
             error={!!rutError}
             helperText={rutError || "Formato: XX.XXX.XXX-X"}
+            inputProps={{
+              'aria-label': 'RUT de la empresa',
+              'data-testid': 'rut-input'
+            }}
           />
 
           <TextField
@@ -102,13 +141,18 @@ const EmpresaForm = () => {
             onChange={handleChange}
             margin="normal"
             required
+            inputProps={{
+              'aria-label': 'Razón Social de la empresa',
+              'data-testid': 'razon-social-input'
+            }}
           />
 
-          <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+          <Box sx={estilosBotones}>
             <Button
               type="submit"
               variant="contained"
               color="primary"
+              data-testid="submit-button"
             >
               Crear Empresa
             </Button>
@@ -116,6 +160,7 @@ const EmpresaForm = () => {
             <Button
               variant="outlined"
               onClick={() => navigate('/')}
+              data-testid="cancel-button"
             >
               Cancelar
             </Button>

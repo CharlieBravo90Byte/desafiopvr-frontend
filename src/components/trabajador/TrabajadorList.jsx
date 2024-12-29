@@ -32,30 +32,43 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { trabajadorService } from '../../services/trabajadorService';
 import { empresaService } from '../../services/empresaService';
 
+/**
+ * Componente Listado de Trabajadores
+ * Fecha: 2024-12-29
+ * Autor: CharlieBravo90Byte
+ *
+ * Muestra una lista de trabajadores con opciones para buscar, agregar,
+ * editar y eliminar trabajadores.
+ */
 const TrabajadorList = () => {
   const { empresaId } = useParams();
   const navigate = useNavigate();
-  const [trabajadores, setTrabajadores] = useState([]);
-  const [filteredTrabajadores, setFilteredTrabajadores] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [empresa, setEmpresa] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
+  
+  // Estados para manejar datos y estados de la UI
+  const [trabajadores, setTrabajadores] = useState([]); // Lista de trabajadores
+  const [filteredTrabajadores, setFilteredTrabajadores] = useState([]); // Lista filtrada de trabajadores
+  const [searchTerm, setSearchTerm] = useState(''); // Término de búsqueda
+  const [empresa, setEmpresa] = useState(null); // Datos de la empresa
+  const [loading, setLoading] = useState(true); // Estado de carga
+  const [error, setError] = useState(null); // Estado de error
+  const [successMessage, setSuccessMessage] = useState(null); // Mensaje de éxito
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     trabajadorId: null,
     trabajadorNombre: ''
-  });
+  }); // Estado del diálogo de confirmación de eliminación
 
+  // Cargar datos cuando cambia el ID de la empresa
   useEffect(() => {
     loadData();
   }, [empresaId]);
 
+  // Filtrar trabajadores cuando cambia el término de búsqueda o la lista de trabajadores
   useEffect(() => {
     filterTrabajadores();
   }, [searchTerm, trabajadores]);
 
+  // Función para filtrar trabajadores según el término de búsqueda
   const filterTrabajadores = () => {
     const filtered = trabajadores.filter(trabajador => 
       trabajador.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,10 +79,12 @@ const TrabajadorList = () => {
     setFilteredTrabajadores(filtered);
   };
 
+  // Manejar cambio en el término de búsqueda
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
+  // Cargar datos de la empresa y sus trabajadores
   const loadData = async () => {
     try {
       setLoading(true);
@@ -91,6 +106,7 @@ const TrabajadorList = () => {
     }
   };
 
+  // Manejar clic en el botón de eliminar trabajador
   const handleDeleteClick = (trabajador) => {
     setDeleteDialog({
       open: true,
@@ -99,6 +115,7 @@ const TrabajadorList = () => {
     });
   };
 
+  // Manejar cancelación del diálogo de eliminación
   const handleDeleteCancel = () => {
     setDeleteDialog({
       open: false,
@@ -107,6 +124,7 @@ const TrabajadorList = () => {
     });
   };
 
+  // Confirmar eliminación de trabajador
   const handleDeleteConfirm = async () => {
     try {
       await trabajadorService.delete(deleteDialog.trabajadorId);
@@ -122,6 +140,7 @@ const TrabajadorList = () => {
     }
   };
 
+  // Mostrar componente de carga si los datos están cargando
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -169,6 +188,7 @@ const TrabajadorList = () => {
         </Box>
       </Box>
 
+      {/* Mensaje de éxito */}
       {successMessage && (
         <Alert 
             severity="success" 
@@ -184,13 +204,14 @@ const TrabajadorList = () => {
         </Alert>
         )}
 
+      {/* Mensaje de error */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
-      {/* Buscador */}
+      {/* Barra de búsqueda */}
       <Box sx={{ mb: 2 }}>
         <TextField
           fullWidth
@@ -208,6 +229,7 @@ const TrabajadorList = () => {
         />
       </Box>
 
+      {/* Mostrar mensaje si no hay trabajadores que coincidan con la búsqueda o si no hay trabajadores registrados */}
       {!error && filteredTrabajadores.length === 0 ? (
         <Alert severity="info">
           {trabajadores.length === 0 

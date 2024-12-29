@@ -1,44 +1,72 @@
-// src/components/trabajador/TrabajadorForm.jsx
+/**
+ * Componente TrabajadorForm - Formulario de creación/edición de trabajadores
+ * Fecha: 2024-12-29 10:45:15 UTC
+ * Autor: CharlieBravo90Byte
+ * 
+ * Este componente maneja la creación y edición de trabajadores de una empresa,
+ * incluyendo validaciones de RUT y campos requeridos
+ */
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Paper,
-  Alert,
-  Breadcrumbs,
-  Link
+  Box, TextField, Button, Typography,
+  Paper, Alert, Breadcrumbs, Link
 } from '@mui/material';
 import { trabajadorService } from '../../services/trabajadorService';
 import { empresaService } from '../../services/empresaService';
 import { validateRut } from '../../utils/validators';
 import Loading from '../common/Loading';
 
+// Estilos para los contenedores
+const estilosContenedor = {
+  width: '100%',
+  mb: 4
+};
+
+const estilosPaper = {
+  p: 3
+};
+
+const estilosBotones = {
+  mt: 3,
+  display: 'flex',
+  gap: 2
+};
+
+// Estado inicial del trabajador
+const estadoInicialTrabajador = {
+  rut: '',
+  nombre: '',
+  apellidoPaterno: '',
+  apellidoMaterno: '',
+  direccion: ''
+};
+
+/**
+ * Componente para crear o editar un trabajador dentro de una empresa
+ * @returns {JSX.Element} Formulario de trabajador
+ */
 const TrabajadorForm = () => {
   const { empresaId, trabajadorId } = useParams();
   const navigate = useNavigate();
+  
+  // Estados del componente
   const [loading, setLoading] = useState(trabajadorId ? true : false);
   const [error, setError] = useState('');
   const [empresa, setEmpresa] = useState(null);
   const [rutError, setRutError] = useState('');
-  const [trabajador, setTrabajador] = useState({
-    rut: '',
-    nombre: '',
-    apellidoPaterno: '',
-    apellidoMaterno: '',
-    direccion: ''
-  });
+  const [trabajador, setTrabajador] = useState(estadoInicialTrabajador);
 
+  /**
+   * Carga los datos de la empresa y del trabajador si es modo edición
+   */
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Cargar datos de la empresa
         const empresaData = await empresaService.getById(empresaId);
         setEmpresa(empresaData);
 
-        // Si es edición, cargar datos del trabajador
         if (trabajadorId) {
           const trabajadorData = await trabajadorService.getById(trabajadorId);
           setTrabajador(trabajadorData);
@@ -54,6 +82,10 @@ const TrabajadorForm = () => {
     loadData();
   }, [empresaId, trabajadorId]);
 
+  /**
+   * Valida todos los campos del formulario
+   * @returns {boolean} True si el formulario es válido
+   */
   const validateForm = () => {
     let isValid = true;
     setError('');
@@ -64,7 +96,8 @@ const TrabajadorForm = () => {
       isValid = false;
     }
 
-    if (!trabajador.nombre || !trabajador.apellidoPaterno || !trabajador.apellidoMaterno || !trabajador.direccion) {
+    if (!trabajador.nombre || !trabajador.apellidoPaterno || 
+        !trabajador.apellidoMaterno || !trabajador.direccion) {
       setError('Todos los campos son obligatorios');
       isValid = false;
     }
@@ -72,6 +105,10 @@ const TrabajadorForm = () => {
     return isValid;
   };
 
+  /**
+   * Maneja los cambios en los campos del formulario
+   * @param {Event} e - Evento del campo de texto
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setTrabajador(prev => ({
@@ -83,21 +120,20 @@ const TrabajadorForm = () => {
     }
   };
 
+  /**
+   * Maneja el envío del formulario
+   * @param {Event} e - Evento del formulario
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     try {
-      const trabajadorData = {
-        ...trabajador
-      };
-
       if (trabajadorId) {
-        await trabajadorService.update(trabajadorId, trabajadorData);
+        await trabajadorService.update(trabajadorId, trabajador);
       } else {
-        await trabajadorService.create(empresaId, trabajadorData);
+        await trabajadorService.create(empresaId, trabajador);
       }
-
       navigate(`/empresas/${empresaId}/trabajadores`);
     } catch (err) {
       console.error('Error al guardar trabajador:', err);
@@ -110,7 +146,8 @@ const TrabajadorForm = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', mb: 4 }}>
+    <Box sx={estilosContenedor}>
+      {/* Navegación de migas de pan */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link 
           component="button"
@@ -133,7 +170,7 @@ const TrabajadorForm = () => {
         </Typography>
       </Breadcrumbs>
 
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={estilosPaper}>
         <Typography variant="h5" gutterBottom>
           {trabajadorId ? 'Editar' : 'Nuevo'} Trabajador
         </Typography>
@@ -144,7 +181,7 @@ const TrabajadorForm = () => {
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <TextField
             fullWidth
             label="RUT"
@@ -155,6 +192,9 @@ const TrabajadorForm = () => {
             required
             error={!!rutError}
             helperText={rutError || "Formato: XX.XXX.XXX-X"}
+            inputProps={{
+              'aria-label': 'RUT del trabajador'
+            }}
           />
 
           <TextField
@@ -165,6 +205,9 @@ const TrabajadorForm = () => {
             onChange={handleChange}
             margin="normal"
             required
+            inputProps={{
+              'aria-label': 'Nombre del trabajador'
+            }}
           />
 
           <TextField
@@ -175,6 +218,9 @@ const TrabajadorForm = () => {
             onChange={handleChange}
             margin="normal"
             required
+            inputProps={{
+              'aria-label': 'Apellido paterno del trabajador'
+            }}
           />
 
           <TextField
@@ -185,6 +231,9 @@ const TrabajadorForm = () => {
             onChange={handleChange}
             margin="normal"
             required
+            inputProps={{
+              'aria-label': 'Apellido materno del trabajador'
+            }}
           />
 
           <TextField
@@ -197,13 +246,17 @@ const TrabajadorForm = () => {
             required
             multiline
             rows={3}
+            inputProps={{
+              'aria-label': 'Dirección del trabajador'
+            }}
           />
 
-          <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+          <Box sx={estilosBotones}>
             <Button
               type="submit"
               variant="contained"
               color="primary"
+              data-testid="submit-button"
             >
               {trabajadorId ? 'Guardar Cambios' : 'Crear Trabajador'}
             </Button>
@@ -211,6 +264,7 @@ const TrabajadorForm = () => {
             <Button
               variant="outlined"
               onClick={() => navigate(`/empresas/${empresaId}/trabajadores`)}
+              data-testid="cancel-button"
             >
               Cancelar
             </Button>

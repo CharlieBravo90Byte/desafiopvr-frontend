@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
 import axios from 'axios';
 
+// Configuración de la instancia de axios con la base URL de la API
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
   headers: {
@@ -9,13 +10,21 @@ const api = axios.create({
   }
 });
 
+/**
+ * Hook personalizado para realizar solicitudes HTTP a la API
+ * Fecha: 2024-12-29
+ * Autor: CharlieBravo90Byte
+ *
+ * Este hook proporciona métodos para realizar solicitudes GET, POST, PUT y DELETE,
+ * manejando estados de carga y errores.
+ */
 export const useApi = () => {
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const { showLoading, hideLoading, showError, showNotification } = useAppContext();
+  const [data, setData] = useState(null); // Datos de la respuesta
+  const [error, setError] = useState(null); // Mensaje de error
+  const [isLoading, setIsLoading] = useState(false); // Estado de carga
+  const { showLoading, hideLoading, showError, showNotification } = useAppContext(); // Contexto de la aplicación
 
-  // Interceptor para manejar errores globalmente
+  // Interceptor para manejar errores globalmente en las respuestas de la API
   api.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -55,6 +64,7 @@ export const useApi = () => {
     }
   );
 
+  // Función para ejecutar una solicitud HTTP con manejo de estados y notificaciones
   const executeRequest = useCallback(async (
     requestFunction,
     { 
