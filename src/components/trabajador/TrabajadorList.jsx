@@ -1,4 +1,3 @@
-// src/components/trabajador/TrabajadorList.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -14,6 +13,8 @@ import {
   Typography,
   Button,
   Alert,
+  TextField,
+  InputAdornment,
   CircularProgress,
   Breadcrumbs,
   Link,
@@ -26,6 +27,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { trabajadorService } from '../../services/trabajadorService';
 import { empresaService } from '../../services/empresaService';
@@ -34,9 +36,12 @@ const TrabajadorList = () => {
   const { empresaId } = useParams();
   const navigate = useNavigate();
   const [trabajadores, setTrabajadores] = useState([]);
+  const [filteredTrabajadores, setFilteredTrabajadores] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [empresa, setEmpresa] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     trabajadorId: null,
@@ -46,6 +51,24 @@ const TrabajadorList = () => {
   useEffect(() => {
     loadData();
   }, [empresaId]);
+
+  useEffect(() => {
+    filterTrabajadores();
+  }, [searchTerm, trabajadores]);
+
+  const filterTrabajadores = () => {
+    const filtered = trabajadores.filter(trabajador => 
+      trabajador.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trabajador.apellidoPaterno.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trabajador.apellidoMaterno.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trabajador.rut.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredTrabajadores(filtered);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
 
   const loadData = async () => {
     try {
@@ -59,6 +82,7 @@ const TrabajadorList = () => {
       // Cargar trabajadores de la empresa
       const trabajadoresData = await trabajadorService.getAllByEmpresa(empresaId);
       setTrabajadores(trabajadoresData);
+      setFilteredTrabajadores(trabajadoresData);
     } catch (err) {
       console.error('Error al cargar datos:', err);
       setError('Error al cargar los datos. Por favor, intente nuevamente.');
@@ -71,7 +95,7 @@ const TrabajadorList = () => {
     setDeleteDialog({
       open: true,
       trabajadorId: trabajador.id,
-      trabajadorNombre: `${trabajador.nombres} ${trabajador.apellidos}`
+      trabajadorNombre: `${trabajador.nombre} ${trabajador.apellidoPaterno}`
     });
   };
 
@@ -86,13 +110,15 @@ const TrabajadorList = () => {
   const handleDeleteConfirm = async () => {
     try {
       await trabajadorService.delete(deleteDialog.trabajadorId);
-      setTrabajadores(prevTrabajadores => 
-        prevTrabajadores.filter(t => t.id !== deleteDialog.trabajadorId)
-      );
+      await loadData(); // Recarga todos los trabajadores
+      setSuccessMessage(`Trabajador ${deleteDialog.trabajadorNombre} eliminado exitosamente`); // Mensaje más específico
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
       handleDeleteCancel();
     } catch (err) {
       console.error('Error al eliminar trabajador:', err);
-      setError('Error al eliminar el trabajador. Por favor, intente nuevamente.');
+      setError(`Error al eliminar al trabajador ${deleteDialog.trabajadorNombre}. Por favor, intente nuevamente.`);
     }
   };
 
@@ -143,58 +169,93 @@ const TrabajadorList = () => {
         </Box>
       </Box>
 
+      {successMessage && (
+        <Alert 
+            severity="success" 
+            sx={{ 
+            mb: 2,
+            fontSize: '1.1rem',
+            '& .MuiAlert-icon': {
+                fontSize: '1.5rem'
+            }
+            }}
+        >
+            {successMessage}
+        </Alert>
+        )}
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
-      {!error && trabajadores.length === 0 ? (
+      {/* Buscador */}
+      <Box sx={{ mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Buscar por RUT, Nombre o Apellidos..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
+      {!error && filteredTrabajadores.length === 0 ? (
         <Alert severity="info">
-          No hay trabajadores registrados para esta empresa. ¡Agregue uno nuevo!
+          {trabajadores.length === 0 
+            ? "No hay trabajadores registrados para esta empresa. ¡Agregue uno nuevo!"
+            : "No se encontraron trabajadores que coincidan con la búsqueda."}
         </Alert>
       ) : (
         <TableContainer component={Paper}>
-  <Table>
-    <TableHead>
-      <TableRow>
-        <TableCell>RUT</TableCell>
-        <TableCell>Nombre</TableCell>
-        <TableCell>Apellido Paterno</TableCell>
-        <TableCell>Apellido Materno</TableCell>
-        <TableCell>Dirección</TableCell>
-        <TableCell align="center">Acciones</TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {trabajadores.map((trabajador) => (
-        <TableRow key={trabajador.id}>
-          <TableCell>{trabajador.rut}</TableCell>
-          <TableCell>{trabajador.nombre}</TableCell>
-          <TableCell>{trabajador.apellidoPaterno}</TableCell>
-          <TableCell>{trabajador.apellidoMaterno}</TableCell>
-          <TableCell>{trabajador.direccion}</TableCell>
-          <TableCell align="center">
-            <IconButton 
-              color="primary"
-              onClick={() => navigate(`/empresas/${empresaId}/trabajadores/editar/${trabajador.id}`)}
-              title="Editar trabajador"
-            >
-              <EditIcon />
-            </IconButton>
-            <IconButton 
-              color="error"
-              onClick={() => handleDeleteClick(trabajador)}
-              title="Eliminar trabajador"
-            >
-              <DeleteIcon />
-            </IconButton>
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>RUT</TableCell>
+                <TableCell>Nombre</TableCell>
+                <TableCell>Apellido Paterno</TableCell>
+                <TableCell>Apellido Materno</TableCell>
+                <TableCell>Dirección</TableCell>
+                <TableCell align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredTrabajadores.map((trabajador) => (
+                <TableRow key={trabajador.id}>
+                  <TableCell>{trabajador.rut}</TableCell>
+                  <TableCell>{trabajador.nombre}</TableCell>
+                  <TableCell>{trabajador.apellidoPaterno}</TableCell>
+                  <TableCell>{trabajador.apellidoMaterno}</TableCell>
+                  <TableCell>{trabajador.direccion}</TableCell>
+                  <TableCell align="center">
+                    <IconButton 
+                      color="primary"
+                      onClick={() => navigate(`/empresas/${empresaId}/trabajadores/editar/${trabajador.id}`)}
+                      title="Editar trabajador"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton 
+                      color="error"
+                      onClick={() => handleDeleteClick(trabajador)}
+                      title="Eliminar trabajador"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       {/* Diálogo de confirmación de eliminación */}

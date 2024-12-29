@@ -1,4 +1,3 @@
-// src/components/empresa/EmpresaList.jsx
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -14,6 +13,8 @@ import {
   Button,
   Box,
   Alert,
+  TextField,
+  InputAdornment,
   CircularProgress,
   Dialog,
   DialogTitle,
@@ -24,6 +25,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
 import { empresaService } from '../../services/empresaService';
 import PeopleIcon from '@mui/icons-material/People'; 
 import Loading from '../common/Loading';
@@ -31,8 +33,11 @@ import Loading from '../common/Loading';
 const EmpresaList = () => {
   const navigate = useNavigate();
   const [empresas, setEmpresas] = useState([]);
+  const [filteredEmpresas, setFilteredEmpresas] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     empresaId: null,
@@ -43,18 +48,31 @@ const EmpresaList = () => {
     loadEmpresas();
   }, []);
 
-  
+  useEffect(() => {
+    filterEmpresas();
+  }, [searchTerm, empresas]);
+
+  const filterEmpresas = () => {
+    const filtered = empresas.filter(empresa => 
+      empresa.razonSocial.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      empresa.rut.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredEmpresas(filtered);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+  };
 
   const loadEmpresas = async () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Intentando cargar empresas...'); // Debug
       const data = await empresaService.getAll();
-      console.log('Empresas cargadas:', data); // Debug
       setEmpresas(data);
+      setFilteredEmpresas(data);
     } catch (err) {
-      console.error('Error al cargar empresas:', err); // Debug
+      console.error('Error al cargar empresas:', err);
       setError('Error al cargar las empresas. Por favor, intente nuevamente.');
     } finally {
       setLoading(false);
@@ -64,7 +82,7 @@ const EmpresaList = () => {
   const handleDeleteClick = (empresa) => {
     setDeleteDialog({
       open: true,
-      empresaId: empresa.identificadorUnico,
+      empresaId: empresa.id,
       empresaNombre: empresa.razonSocial
     });
   };
@@ -80,10 +98,13 @@ const EmpresaList = () => {
   const handleDeleteConfirm = async () => {
     try {
       await empresaService.delete(deleteDialog.empresaId);
-      setEmpresas(prevEmpresas => 
-        prevEmpresas.filter(empresa => empresa.identificadorUnico !== deleteDialog.empresaId)
-      );
       handleDeleteCancel();
+      await loadEmpresas();
+      setError(null);
+      setSuccessMessage('Empresa eliminada exitosamente');
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
     } catch (err) {
       console.error('Error al eliminar empresa:', err);
       setError('Error al eliminar la empresa. Por favor, intente nuevamente.');
@@ -93,8 +114,6 @@ const EmpresaList = () => {
   if (loading) {
     return <Loading message="Cargando empresas..." />;
   }
-
-
 
   return (
     <Box sx={{ width: '100%', mb: 4 }}>
@@ -111,15 +130,51 @@ const EmpresaList = () => {
         </Button>
       </Box>
 
+      {successMessage && (
+        <Alert 
+          severity="success" 
+          sx={{ 
+            mb: 2,
+            fontSize: '1.1rem',
+            '& .MuiAlert-icon': {
+              fontSize: '1.5rem'
+            }
+          }}
+        >
+          {successMessage}
+        </Alert>
+      )}
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
 
-      {!error && empresas.length === 0 ? (
+      {/* Buscador */}
+      <Box sx={{ mb: 2 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Buscar por RUT o Razón Social..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+      
+
+      {!error && filteredEmpresas.length === 0 ? (
         <Alert severity="info">
-          No hay empresas registradas. ¡Crea una nueva!
+          {empresas.length === 0 
+            ? "No hay empresas registradas. ¡Crea una nueva!" 
+            : "No se encontraron empresas que coincidan con la búsqueda."}
         </Alert>
       ) : (
         <TableContainer component={Paper}>
@@ -133,36 +188,40 @@ const EmpresaList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {empresas.map((empresa) => (
+              {filteredEmpresas.map((empresa) => (
                 <TableRow key={empresa.id}>
                   <TableCell>{empresa.rut}</TableCell>
                   <TableCell>{empresa.razonSocial}</TableCell>
                   <TableCell>
-                    {new Date(empresa.fechaInsercion).toLocaleString()}
+                  {new Date(empresa.fechaInsercion).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                      })}
                   </TableCell>
                   <TableCell align="center">
-                  <IconButton 
-                    color="primary"
-                    onClick={() => navigate(`/empresas/editar/${empresa.id}`)}
-                    title="Editar empresa"
-                  >
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton 
-                    color="info"
-                    onClick={() => navigate(`/empresas/${empresa.id}/trabajadores`)}
-                    title="Ver trabajadores"
-                  >
-                    <PeopleIcon />
-                  </IconButton>
-                  <IconButton 
-                    color="error"
-                    onClick={() => handleDeleteClick(empresa)}
-                    title="Eliminar empresa"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+                    <IconButton 
+                      color="primary"
+                      onClick={() => navigate(`/empresas/editar/${empresa.id}`)}
+                      title="Editar empresa"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton 
+                      color="info"
+                      onClick={() => navigate(`/empresas/${empresa.id}/trabajadores`)}
+                      title="Ver trabajadores"
+                    >
+                      <PeopleIcon />
+                    </IconButton>
+                    <IconButton 
+                      color="error"
+                      onClick={() => handleDeleteClick(empresa)}
+                      title="Eliminar empresa"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
