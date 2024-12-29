@@ -7,13 +7,10 @@ const Navbar = () => {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Gestión de Empresas
+          Gestión de Empresas Previder
         </Typography>
         <Button color="inherit" component={Link} to="/">
-          Empresas
-        </Button>
-        <Button color="inherit" component={Link} to="/empresas/nuevo">
-          Nueva Empresa
+          Listado Empresas
         </Button>
       </Toolbar>
     </AppBar>

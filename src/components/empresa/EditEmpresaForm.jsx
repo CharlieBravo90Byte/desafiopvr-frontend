@@ -1,25 +1,47 @@
-// src/components/empresa/EmpresaForm.jsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/components/empresa/EditEmpresaForm.jsx
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { 
   Box,
   TextField,
   Button,
   Typography,
   Paper,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { empresaService } from '../../services/empresaService';
 import { validateRut } from '../../utils/validators';
 
-const EmpresaForm = () => {
+const EditEmpresaForm = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [rutError, setRutError] = useState('');
   const [empresa, setEmpresa] = useState({
     rut: '',
     razonSocial: ''
   });
+
+  useEffect(() => {
+    loadEmpresa();
+  }, [id]);
+
+  const loadEmpresa = async () => {
+    try {
+      const data = await empresaService.getById(id);
+      setEmpresa({
+        rut: data.rut,
+        razonSocial: data.razonSocial
+      });
+    } catch (err) {
+      console.error('Error al cargar empresa:', err);
+      setError('Error al cargar los datos de la empresa');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const validateForm = () => {
     if (!validateRut(empresa.rut)) {
@@ -46,33 +68,35 @@ const EmpresaForm = () => {
     if (!validateForm()) return;
     
     try {
-      // Enviar solo los campos necesarios
       const empresaData = {
         rut: empresa.rut.trim(),
         razonSocial: empresa.razonSocial.trim()
       };
 
-      console.log('Datos a enviar:', empresaData);
-      
-      // Llamar al servicio para crear la empresa
-      const response = await empresaService.create(empresaData);
-      console.log('Empresa creada:', response);
-      
-      // Redireccionar al listado después de crear exitosamente
+      console.log('Actualizando empresa:', empresaData);
+      await empresaService.update(id, empresaData);
       navigate('/');
     } catch (err) {
-      console.error('Error detallado:', err);
+      console.error('Error al actualizar empresa:', err);
       const errorMessage = err.response?.data?.message || 
-        'Error al crear la empresa. Verifique los datos e intente nuevamente.';
+        'Error al actualizar la empresa. Verifique los datos e intente nuevamente.';
       setError(errorMessage);
     }
   };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
       <Paper sx={{ p: 3 }}>
         <Typography variant="h5" gutterBottom>
-          Crear Nueva Empresa
+          Editar Empresa
         </Typography>
 
         {error && (
@@ -110,7 +134,7 @@ const EmpresaForm = () => {
               variant="contained"
               color="primary"
             >
-              Crear Empresa
+              Guardar Cambios
             </Button>
             
             <Button
@@ -126,4 +150,4 @@ const EmpresaForm = () => {
   );
 };
 
-export default EmpresaForm;
+export default EditEmpresaForm;
