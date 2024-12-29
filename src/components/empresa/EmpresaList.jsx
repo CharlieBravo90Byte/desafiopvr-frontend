@@ -134,7 +134,7 @@ const EmpresaList = () => {
             </TableHead>
             <TableBody>
               {empresas.map((empresa) => (
-                <TableRow key={empresa.identificadorUnico}>
+                <TableRow key={empresa.id}>
                   <TableCell>{empresa.rut}</TableCell>
                   <TableCell>{empresa.razonSocial}</TableCell>
                   <TableCell>
@@ -143,14 +143,14 @@ const EmpresaList = () => {
                   <TableCell align="center">
                   <IconButton 
                     color="primary"
-                    onClick={() => navigate(`/empresas/editar/${empresa.identificadorUnico}`)}
+                    onClick={() => navigate(`/empresas/editar/${empresa.id}`)}
                     title="Editar empresa"
                   >
                     <EditIcon />
                   </IconButton>
                   <IconButton 
                     color="info"
-                    onClick={() => navigate(`/empresas/${empresa.identificadorUnico}/trabajadores`)}
+                    onClick={() => navigate(`/empresas/${empresa.id}/trabajadores`)}
                     title="Ver trabajadores"
                   >
                     <PeopleIcon />

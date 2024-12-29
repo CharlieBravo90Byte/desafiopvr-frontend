@@ -162,7 +162,7 @@ const TrabajadorList = () => {
         <TableCell>Nombre</TableCell>
         <TableCell>Apellido Paterno</TableCell>
         <TableCell>Apellido Materno</TableCell>
-        <TableCell>Dirección Física</TableCell>
+        <TableCell>Dirección</TableCell>
         <TableCell align="center">Acciones</TableCell>
       </TableRow>
     </TableHead>
@@ -173,7 +173,7 @@ const TrabajadorList = () => {
           <TableCell>{trabajador.nombre}</TableCell>
           <TableCell>{trabajador.apellidoPaterno}</TableCell>
           <TableCell>{trabajador.apellidoMaterno}</TableCell>
-          <TableCell>{trabajador.direccionFisica}</TableCell>
+          <TableCell>{trabajador.direccion}</TableCell>
           <TableCell align="center">
             <IconButton 
               color="primary"

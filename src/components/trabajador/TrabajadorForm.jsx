@@ -8,7 +8,6 @@ import {
   Typography,
   Paper,
   Alert,
-  CircularProgress,
   Breadcrumbs,
   Link
 } from '@mui/material';
@@ -29,7 +28,7 @@ const TrabajadorForm = () => {
     nombre: '',
     apellidoPaterno: '',
     apellidoMaterno: '',
-    direccionFisica: ''
+    direccion: ''
   });
 
   useEffect(() => {
@@ -65,7 +64,7 @@ const TrabajadorForm = () => {
       isValid = false;
     }
 
-    if (!trabajador.nombre || !trabajador.apellidoPaterno || !trabajador.apellidoMaterno || !trabajador.direccionFisica) {
+    if (!trabajador.nombre || !trabajador.apellidoPaterno || !trabajador.apellidoMaterno || !trabajador.direccion) {
       setError('Todos los campos son obligatorios');
       isValid = false;
     }
@@ -190,9 +189,9 @@ const TrabajadorForm = () => {
 
           <TextField
             fullWidth
-            label="Dirección Física"
-            name="direccionFisica"
-            value={trabajador.direccionFisica}
+            label="Dirección"
+            name="direccion"
+            value={trabajador.direccion}
             onChange={handleChange}
             margin="normal"
             required
